@@ -1,0 +1,18 @@
+server {
+    listen 80;
+    listen [::]:80;
+    listen 81 http2;
+    server_name {{DOMAIN}};
+    root /usr/share/nginx/html;
+    location / {
+        proxy_ssl_server_name on;
+        proxy_pass https://www.baidu.com;
+        proxy_set_header Accept-Encoding '';
+        sub_filter "www.baidu.com" "{{DOMAIN}}";
+        sub_filter_once off;
+    }
+    location = /myip {
+return 200 "$remote_addr";
+    }
+        location = /robots.txt {}
+}

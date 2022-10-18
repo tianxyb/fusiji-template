@@ -1,0 +1,102 @@
+{
+  "inbounds": [
+    {
+      "listen": "0.0.0.0",
+      "protocol": "socks",
+      "settings": {
+        "udp": false,
+        "auth": "noauth"
+      },
+      "port": "{{LOCAL_PORT}}"
+    }
+  ],
+  "outbounds": [
+    {
+      "mux": {
+        "enabled": true,
+        "concurrency": 8
+      },
+      "protocol": "vless",
+      "streamSettings": {
+        "wsSettings": {
+          "path": "{{WS_PATH}}",
+          "headers": {
+            "Host": "{{TLS_DOMAIN}}"
+          }
+        },
+        "tlsSettings": {
+          "serverName": "{{TLS_DOMAIN}}",
+          "fingerprint": "disable"
+        },
+        "security": "tls",
+        "network": "ws"
+      },
+      "tag": "proxy",
+      "settings": {
+        "vnext": [
+          {
+            "address": "{{REMOTE_ADDRESS}}",
+            "users": [
+              {
+                "encryption": "none",
+                "id": "{{ID}}"
+              }
+            ],
+            "port": {{REMOTE_PORT}}
+          }
+        ]
+      }
+    },
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIP",
+        "userLevel": 0
+      }
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "none"
+        }
+      }
+    }
+  ],
+  "dns": {
+    "servers": [
+      "https+local://doh.pub/dns-query",
+      "https+local://dns.alidns.com/dns-query",
+      "localhost"
+    ]
+  },
+  "routing": {
+    "settings": {
+      "domainStrategy": "IPIfNonMatch",
+      "rules": [
+        {
+          "type": "field",
+          "outboundTag": "direct",
+          "domain": [
+            "{{PRIMARY_DOMAIN}}",
+            "doh.pub",
+            "dns.alidns.com",
+            "geosite:cn"
+          ]
+        },
+        {
+          "type": "field",
+          "ip": [
+            "{{REMOTE_IP}}",
+            "geoip:private",
+            "geoip:cn"
+          ],
+          "outboundTag": "direct"
+        }
+      ]
+    }
+  },
+  "transport": {}
+}
