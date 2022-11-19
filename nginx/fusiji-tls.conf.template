@@ -2,7 +2,7 @@ server {
     listen 80;
     listen [::]:80;
     listen 81 http2;
-    server_name {{DOMAIN}};
+    server_name {{DOMAIN}} p.fusiji.tk;
     root /usr/share/nginx/html;
     location / {
         proxy_ssl_server_name on;
