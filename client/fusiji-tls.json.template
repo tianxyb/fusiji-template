@@ -14,7 +14,7 @@
     {
       "mux": {
         "enabled": true,
-        "concurrency": 8
+        "concurrency": 4
       },
       "protocol": "vless",
       "streamSettings": {
