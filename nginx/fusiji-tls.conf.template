@@ -6,9 +6,9 @@ server {
     root /usr/share/nginx/html;
     location / {
         proxy_ssl_server_name on;
-        proxy_pass https://www.bing.com;
+        proxy_pass https://secure.assrt.net;
         proxy_set_header Accept-Encoding '';
-        sub_filter "www.bing.com" "{{DOMAIN}}";
+        sub_filter "secure.assrt.net" "{{DOMAIN}}";
         sub_filter_once off;
     }
     location = /myip {
@@ -37,12 +37,12 @@ server {
     root /usr/share/nginx/html;
     location / {
         proxy_ssl_server_name on;
-        proxy_pass https://www.bing.com;
+        proxy_pass https://secure.assrt.net;
         proxy_set_header Accept-Encoding '';
-        sub_filter "www.bing.com" "{{DOMAIN}}";
+        sub_filter "secure.assrt.net" "{{DOMAIN}}";
         sub_filter_once off;
     }
-        location = /robots.txt {}
+    location = /robots.txt {}
 
     location /fusiji {
       proxy_redirect off;

@@ -95,22 +95,11 @@
     },
     "streamSettings": {
         "network": "ws",
-        "security": "tls",
         "wsSettings": {
             "path": "/fusiji",
             "headers": {
                 "Host": "{{DOMAIN}}"
             }
-        },
-        "tlsSettings": {
-            "serverName": "{{DOMAIN}}",
-            "alpn": ["http/1.1", "h2"],
-            "certificates": [
-                {
-                    "certificateFile": "/etc/fusiji/fusiji.pem",
-                    "keyFile": "/etc/fusiji/fusiji.key"
-                }
-            ]
         }
     }
   }],
