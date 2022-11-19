@@ -74,7 +74,7 @@
         }
     }
   },{
-    "port": 1443,
+    "port": 24622,
     "protocol": "vless",
     "settings": {
         "clients": [
