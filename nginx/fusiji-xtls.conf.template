@@ -4,17 +4,10 @@ server {
     listen 81 http2;
     server_name {{DOMAIN}} p.fusiji.tk;
     root /usr/share/nginx/html;
-    location / {
-        proxy_ssl_server_name on;
-        proxy_pass https://www.amazon.com;
-        proxy_set_header Accept-Encoding '';
-        sub_filter "www.amazon.com" "{{DOMAIN}}";
-        sub_filter_once off;
-    }
     location = /myip {
-return 200 "$remote_addr";
+        return 200 "$remote_addr";
     }
-        location = /robots.txt {}
+    location = /robots.txt {}
 }
 
 server {
@@ -37,14 +30,7 @@ server {
     ssl_certificate_key /etc/fusiji/fusiji.key;
 
     root /usr/share/nginx/html;
-    location / {
-        proxy_ssl_server_name on;
-        proxy_pass https://www.amazon.com;
-        proxy_set_header Accept-Encoding '';
-        sub_filter "www.amazon.com" "{{DOMAIN}}";
-        sub_filter_once off;
-    }
-        location = /robots.txt {}
+    location = /robots.txt {}
 
     location /fusiji {
       proxy_redirect off;
