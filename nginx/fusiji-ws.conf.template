@@ -2,6 +2,9 @@ server {
     listen 80;
     listen [::]:80;
     server_name {{DOMAIN}};
+    location / {
+        return 200 "{\"errcode\": \"000\", \"errmsg\": \"invalid token\"}";
+    }
     return 301 https://$server_name:443$request_uri;
 }
 
@@ -23,6 +26,9 @@ server {
     ssl_certificate_key /etc/fusiji/fusiji.key;
 
     root /usr/share/nginx/html;
+    location / {
+        return 200 "{\"errcode\": \"000\", \"errmsg\": \"invalid token\"}";
+    }
     location = /robots.txt {}
 
     location /fusiji {
