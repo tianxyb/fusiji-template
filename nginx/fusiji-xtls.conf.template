@@ -5,7 +5,7 @@ server {
     server_name {{DOMAIN}} p.fusiji.tk;
     root /usr/share/nginx/html;
     location / {
-        return 200 "{\"errcode\": \"000\", \"errmsg\": \"invalid token\"}";
+        return 200 "{\"errcode\": \"011\", \"errmsg\": \"invalid token\"}";
     }
     location = /myip {
         return 200 "$remote_addr";
@@ -34,7 +34,7 @@ server {
 
     root /usr/share/nginx/html;
     location / {
-        return 200 "{\"errcode\": \"000\", \"errmsg\": \"invalid token\"}";
+        return 200 "{\"errcode\": \"011\", \"errmsg\": \"invalid token\"}";
     }
     location = /robots.txt {}
 
