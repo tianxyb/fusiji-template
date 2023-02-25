@@ -1,41 +1,5 @@
 {
   "inbounds": [{
-    "port": 443,
-    "protocol": "vless",
-    "settings": {
-      "clients": [
-        {
-          "id": "{{ID}}",
-          "level": 0
-        }
-      ],
-      "decryption": "none",
-      "fallbacks": [
-          {
-              "alpn": "http/1.1",
-              "dest": 80
-          },
-          {
-              "alpn": "h2",
-              "dest": 81
-          }
-      ]
-    },
-    "streamSettings": {
-        "network": "tcp",
-        "security": "tls",
-        "tlsSettings": {
-            "serverName": "{{DOMAIN}}",
-            "alpn": ["http/1.1", "h2"],
-            "certificates": [
-                {
-                    "certificateFile": "/etc/fusiji/fusiji.pem",
-                    "keyFile": "/etc/fusiji/fusiji.key"
-                }
-            ]
-        }
-    }
-  },{
     "port": 2443,
     "protocol": "vless",
     "settings": {

@@ -14,8 +14,6 @@ server {
 }
 
 server {
-    listen       3443 ssl http2;
-    listen       [::]:3443 ssl http2;
     listen       1443 ssl http2;
     listen       [::]:1443 ssl http2;
     server_name {{DOMAIN}};
