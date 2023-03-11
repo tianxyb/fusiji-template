@@ -30,7 +30,7 @@
       "settings": {
         "vnext": [
           {
-            "address": "{{REMOTE_ADDRESS}}",
+            "address": "127.0.0.1",
             "users": [
               {
                 "encryption": "none",
@@ -38,7 +38,7 @@
                 "id": "{{ID}}"
               }
             ],
-            "port": {{REMOTE_PORT}}
+            "port": 443
           }
         ]
       }
