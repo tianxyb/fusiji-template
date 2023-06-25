@@ -19,6 +19,19 @@
         "auth": "noauth"
       },
       "port": 23457
+    },
+    {
+      "port": 23458,
+      "listen": "0.0.0.0",
+      "protocol": "http",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      },
+      "settings": {
+        "auth": "noauth",
+        "udp": false
+      }
     }
   ],
   "outbounds": [
