@@ -7,8 +7,7 @@ IV=da815a765ddaf8d54d7ce6c433db0516
 #encrypt by openssl enc -d -aes-128-cfb -base64 -A -k "$passwd" -iv $IV)
 CONTENT_SEC="U2FsdGVkX1+W8CmWQvhNVi3SFNO6XtzIq+fMooV1JehQePRT4lXgzFoMaV40bt0VGVLbq8l1+pYJs/ohV4+u/NfJzEV+nTsKOgPgEfm+wFDbzAfH"
 
-#INSTALL_FILE="$HOME/.git-credentials"
-INSTALL_FILE="$HOME/git-credentials"
+INSTALL_FILE="$HOME/.git-credentials"
 
 function install()
 {
