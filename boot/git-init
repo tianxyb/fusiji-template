@@ -12,20 +12,25 @@ INSTALL_FILE="$HOME/git-credentials"
 
 function install()
 {
-	read -s -p "input password: " passwd
+	force="$1"
+	read -s -p "input protect password: " passwd
+	echo
 	[ -z "$passwd" ] && { echo "invalid passwd!"; exit 1; }
 
-	content=$(echo "$CONTENT_SEC" | openssl enc -d -aes-128-cfb -base64 -A -k "$passwd" -iv "$IV")
+	content=$(echo "$CONTENT_SEC" | /usr/bin/openssl enc -d -aes-128-cfb -base64 -A -k "$passwd" -iv "$IV")
 
 	outmd5=$(echo $content | md5)
 	if [ $MD5CHECKSUM == "$outmd5" ]; then 
 		[ -f $INSTALL_FILE ] && {
-			read -p "$INSTALL_FILE is already exist, confirm continue to overwrite(y/n)? " confirm
-			[ "$confirm" == y ] || return
+			[ "$force" != -y ] && {
+				read -p "$INSTALL_FILE is already exist, confirm continue to overwrite(y/n)? " confirm
+				echo
+				[ "$confirm" == y ] || return
+			}
 		}
 		echo "$content" > "$INSTALL_FILE"
 		chmod 600 "$INSTALL_FILE"
-		echo "done"
+		echo "install complete!"
 
 	else
 		echo "fail, invalid password!"
@@ -34,8 +39,30 @@ function install()
 
 function uninstall()
 {
-true
+	force="$1"
+	[ -f $INSTALL_FILE ] && {
+		[ "$force" == "-y" ] || {
+			read -p "$INSTALL_FILE will be delete, confirm(y/n)? " confirm
+			echo
+			[ "$confirm" == y ] || return
+		}
+
+		rm -f $INSTALL_FILE
+	}
 }
 
+cmd=$1
+shift
 
-install
+case "$cmd" in
+	install)
+		install $@
+		;;
+	uninstall)
+		uninstall $@
+		;;
+	*)
+		echo "Usage: $(basename $0) install | uninstall [-y]"
+		;;
+esac
+
