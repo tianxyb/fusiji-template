@@ -24,9 +24,9 @@ upgrade_file(){
         if [ "$rtn" == 0 -a "$http_code" == 200 ]; then
                 if [ -f  $filepath/$filename.bk ]; then
                 	local diffresult=$(diff /tmp/tmpfile $filepath/$filename.bk)
-                	[ -z "$diffresult" ] && 
+                	[ -z "$diffresult" ] && {
 				echo "upgrade success, but the file is already up to date." 
-			|| { 
+			} || { 
                 		mv /tmp/tmpfile $filepath/$filename; 
 				echo "upgrade success, diff:"; 
 				echo "$diffresult"; 
