@@ -5,6 +5,21 @@ NGINX_FILE=fusiji.tk.conf
 
 RMOTE_NGINX_CONF_URL=https://raw.githubusercontent.com/tianxyb/fusiji-template/master/nginx/fusiji.tk.conf
 
+log()
+{
+	echo "$(date '+%Y-%m-%d %H:%M:%S') $@"
+}
+
+info()
+{
+	log "[INFO] $@"
+}
+
+error()
+{
+	log "[ERROR] $@"
+}
+
 upgrade_file(){
         local filepath=$1
         local filename=$2
@@ -14,31 +29,31 @@ upgrade_file(){
         mkdir -p $filepath
 
         [ -f $filepath/$filename ] && {
-                echo ">>> backup $filename first ..."
+                info ">>> backup $filename first ..."
                 cp $filepath/$filename $filepath/$filename.bk
         }   
 
-        echo ">>> download $filename ..." 
+        info ">>> download $filename ..." 
         local http_code=$(curl -L -w "%{http_code}" -o /tmp/tmpfile "$remote_url") 
 	rtn=$?
         if [ "$rtn" == 0 -a "$http_code" == 200 ]; then
                 if [ -f  $filepath/$filename.bk ]; then
                 	local diffresult=$(diff /tmp/tmpfile $filepath/$filename.bk)
                 	[ -z "$diffresult" ] && {
-				echo "upgrade success, but the file is already up to date." 
+				info "upgrade success, but the file is already up to date." 
 			} || { 
                 		mv /tmp/tmpfile $filepath/$filename; 
-				echo "upgrade success, diff:"; 
-				echo "$diffresult"; 
+				info "upgrade success, diff:"; 
+				info "$diffresult"; 
 				[ "$reload_cmd" ] && bash -c "$reload_cmd"
 			}
 		else
                 	mv /tmp/tmpfile $filepath/$filename; 
-		       	echo "upgrade success!"
+		       	info "upgrade success!"
 		fi
                 return 0
 	else  
-		echo "***Error: download file error[$http_code]: $(cat /tmp/tmpfile) "; 
+		error "***Error: download file error[$http_code]: $(cat /tmp/tmpfile) "; 
 		rm -f /tmp/tmpfile; 
 		return 1; 
 	fi
