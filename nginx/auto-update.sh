@@ -19,7 +19,7 @@ upgrade_file(){
         }   
 
         echo ">>> download $filename ..." 
-        local http_code=$(curl -L -w "%{http_code}" -H "Authorization: token $token" -o /tmp/tmpfile "$remote_url") 
+        local http_code=$(curl -L -w "%{http_code}" -o /tmp/tmpfile "$remote_url") 
 	rtn=$?
         if [ "$rtn" == 0 -a "$http_code" == 200 ]; then
                 if [ -f  $filepath/$filename.bk ]; then
