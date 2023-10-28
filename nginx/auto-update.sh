@@ -9,6 +9,8 @@ upgrade_file(){
         local filepath=$1
         local filename=$2
         local remote_url=$3
+
+	local reload_cmd=$4
         mkdir -p $filepath
 
         [ -f $filepath/$filename ] && {
@@ -28,6 +30,7 @@ upgrade_file(){
                 		mv /tmp/tmpfile $filepath/$filename; 
 				echo "upgrade success, diff:"; 
 				echo "$diffresult"; 
+				[ "$reload_cmd" ] && bash -c "$reload_cmd"
 			}
 		else
                 	mv /tmp/tmpfile $filepath/$filename; 
@@ -42,7 +45,7 @@ upgrade_file(){
 }
 
 upgrade_proxy_conf(){
-        upgrade_file "$NGINX_CONF_PATH" "$NGINX_FILE" "$RMOTE_NGINX_CONF_URL"
+        upgrade_file "$NGINX_CONF_PATH" "$NGINX_FILE" "$RMOTE_NGINX_CONF_URL" "systemctl restart nginx"
 }
 
 upgrade_proxy_conf
