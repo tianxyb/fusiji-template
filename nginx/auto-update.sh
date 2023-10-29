@@ -56,7 +56,7 @@ upgrade_file(){
 		[ "$reload_cmd" ] && {
 			bash -c "$reload_cmd"
 			rtn=$?
-			info "reload [$reload_cmdr], rtn=$rtn"
+			info "reload [$reload_cmd], rtn=$rtn"
 		}
                 return 0
 	else  
