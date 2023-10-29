@@ -28,29 +28,36 @@ upgrade_file(){
 	local reload_cmd=$4
         mkdir -p $filepath
 
-        [ -f $filepath/$filename ] && {
-                info ">>> backup $filename first ..."
-                cp $filepath/$filename $filepath/$filename.bk
-        }   
-
         info ">>> download $filename ..." 
         local http_code=$(curl -L -w "%{http_code}" -o /tmp/tmpfile "$remote_url") 
 	rtn=$?
         if [ "$rtn" == 0 -a "$http_code" == 200 ]; then
-                if [ -f  $filepath/$filename.bk ]; then
-                	local diffresult=$(diff /tmp/tmpfile $filepath/$filename.bk)
+		local diffresult=
+                if [ -f  $filepath/$filename ]; then
+                	diffresult=$(diff /tmp/tmpfile $filepath/$filename)
                 	[ -z "$diffresult" ] && {
 				info "upgrade success, but the file is already up to date." 
-			} || { 
-                		mv /tmp/tmpfile $filepath/$filename; 
-				info "upgrade success, diff:"; 
-				info "$diffresult"; 
-				[ "$reload_cmd" ] && bash -c "$reload_cmd"
+				return 0
 			}
-		else
-                	mv /tmp/tmpfile $filepath/$filename; 
-		       	info "upgrade success!"
 		fi
+
+        	[ -f $filepath/$filename ] && {
+                	info ">>> backup $filename first ..."
+                	cp $filepath/$filename $filepath/$filename.bk
+        	}   
+
+               	mv /tmp/tmpfile $filepath/$filename; 
+		error "*** upgrade success!"
+		[ "$diffresult" ] && {
+			info "file content diff(new old):"; 
+			info "$diffresult"; 
+		}
+
+		[ "$reload_cmd" ] && {
+			bash -c "$reload_cmd"
+			rtn=$?
+			info "reload [$reload_cmdr], rtn=$rtn"
+		}
                 return 0
 	else  
 		error "***Error: download file error[$http_code]: $(cat /tmp/tmpfile) "; 
