@@ -1,0 +1,191 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd $(dirname ${BASH_SOURCE[0]}); pwd)
+
+DEFAULT_LOGGER_RUNNING_HOME=${LOGGER_RUNNING_HOME:-$HOMEBREW_PREFIX/var/run/loggerd}
+
+function msg()
+{
+	echo "$(date "+%Y-%m-%d %H:%M:%S") $*"
+}
+
+which cronolog >/dev/null 2>&1 || {
+	echo "can not found cronolog, please install first!"
+	exit 1
+}
+
+RUNNING_DIR="$1"
+[ "$RUNNING_DIR" ] || RUNNING_DIR=$DEFAULT_LOGGER_RUNNING_HOME
+RUNNING_STATUS_STORE=$RUNNING_DIR/.running
+
+function update_status
+{
+	local logger=${1%.run}
+	local pid=$2
+	local pipe=$3
+	local pattern=$4
+
+	sed -i -e "/^$logger:/d" "$RUNNING_STATUS_STORE"
+	echo "$logger:$pid:$pipe:$pattern" >>"$RUNNING_STATUS_STORE"
+}
+
+function delete_status
+{
+	local logger=${1%.run}
+	sed -i -e "/^$logger:/d" "$RUNNING_STATUS_STORE"
+}
+
+function read_status
+{
+	local logger=${1%.run}
+	local record=$(grep "^$logger:" "$RUNNING_STATUS_STORE")
+
+	local pid=${record#*:}
+	pid=${pid%%:*}
+
+	local pipe=${record%:*}
+	pipe=${pipe##*:}
+
+	local pattern=${record##*:}
+
+	eval "$2=$pid"
+	eval "$3=\"$pipe\""
+	eval "$4=\"$pattern\""
+}
+
+function start_logger()
+{
+	msg "try start logger for config: $1"
+	[ -f "$1" ] || {
+		msg "config file: [$1] not exist!"
+		return 1
+	}
+
+	local logger=$1
+
+	#rm -f .lastpid
+	#local pid=""
+	#	nohup bash -c "( cat \"$pipe\" & echo \$! >.lastpid ) | cronolog $pattern" >/dev/null &
+	#	while [ -z "$pid" -a $(( i++ )) -lt 3 ]; do
+	#		sleep 1
+	#		[ -r .lastpid ] && pid=$(cat .lastpid)
+	#	done
+	#nohup bash -x $SCRIPT_DIR/$0 -task "$logger" >/dev/null &
+	bash -x $SCRIPT_DIR/$0 -task "$logger" >/dev/null &
+	#pid=$!
+
+}
+
+function run_logger
+{
+	local logger=$1
+	local conf=$(grep '^pipe:' "$1" | head -n 1)
+	local pipe=${conf%% *}
+	pipe=${pipe#pipe:}
+	local pattern=${conf#* }
+
+	[ -z "$pipe" -o -z "$pattern" ] && {
+		msg "config file [$1] format error!"
+		cat "$1"
+		return 1
+	}
+
+	if [ -f "$pipe" ]; then
+		[ -p "$pipe" ] || {
+			msg "file $pipe is not fifo"
+			return 2
+		}
+	else
+		mkfifo "$pipe"
+	fi
+
+	while [ -r $logger ]; do
+		cronolog $pattern <"$pipe" &
+		local pid=$!
+
+		update_status "$logger" "$pid" "$pipe" "$pattern"
+		wait $pid
+		sleep 1
+	done
+}
+
+function stop_logger()
+{
+	msg "try stop logger for config: $1"
+
+	[ "$1" ] || return
+
+	read_status "$1" last_pid last_pipe last_pattern
+	[ "$last_pid" ] || {
+		msg "can not found [$1]'s logger"
+		return
+	}
+
+	kill $last_pid
+	delete_status "$1"
+}
+
+function is_content_updated()
+{
+	local conf=$(grep '^pipe:' "$1" | head -n 1)
+	local pipe=${conf%% *}
+	pipe=${pipe#pipe:}
+	local pattern=${conf#* }
+
+	read_status "$1" last_pid last_pipe last_pattern
+
+	if [ "$last_pipe" != "$pipe" -o "$last_pattern" != "$pattern" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+function start()
+{
+	local pwd=$PWD
+	cd "$RUNNING_DIR"
+	for f in $(ls *.run | grep -v ' '); do
+		msg "found log config $f, start daemon"
+		start_logger "$f"
+	done
+	cd "$pwd"
+}
+
+monitor()
+{
+	msg "begin monitor logger config"
+	local pwd=$PWD
+	#local dir=$(basename $RUNNING_DIR)
+	cd "$RUNNING_DIR"
+	fswatch -x -e ".*" -i "^[^ ]*\\.run$" --event Removed --event Updated --event Created "$RUNNING_DIR" | while read change; do
+		msg "watched change: $change"
+		local config=$(basename ${change%% *})
+		local events=${change#* }
+
+		if [ "$events" != "${events//Removed/}" ]; then
+			stop_logger $config
+		elif [ "$events" != "${events//Created/}" ]; then
+			start_logger $config
+		elif [ "$events" != "${events//Updated/}" ]; then
+			if is_content_updated "$config"; then
+				stop_logger $config
+				start_logger $config
+			fi
+		fi
+	done
+	cd "$pwd"
+}
+
+[ -d "$RUNNING_DIR" ] || {
+	msg "Running Home [$RUNNING_DIR] not exist"
+	exit 2
+}
+
+if [ "$1" == "-task" ]; then
+	shift
+	run_logger "$1"
+else
+	start
+	monitor
+fi
