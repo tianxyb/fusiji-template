@@ -1,12 +1,24 @@
 #!/bin/bash
 
-SCRIPT_DIR=$(cd $(dirname ${BASH_SOURCE[0]}); pwd)
+export PS4='+{$$:${FUNCNAME[0]}} '
 
+SCRIPT_DIR=$(
+	cd $(dirname ${BASH_SOURCE[0]})
+	pwd
+)
+SCRIPT="$SCRIPT_DIR/$(basename ${BASH_SOURCE[0]})"
+
+#LOGGERD_RUNNING_DIR="$1"
 DEFAULT_LOGGER_RUNNING_HOME=${LOGGER_RUNNING_HOME:-$HOMEBREW_PREFIX/var/run/loggerd}
+[ "$LOGGERD_RUNNING_DIR" ] || LOGGERD_RUNNING_DIR=$DEFAULT_LOGGER_RUNNING_HOME
+
+RUNNING_STATUS_STORE=$LOGGERD_RUNNING_DIR/.running
+LOGGER_DAEMON_LOGFILE=${LOGGER_DAEMON_LOGFILE:-$HOMEBREW_PREFIX/var/log/loggerd.log}
+LOGGER_DAEMON_PID_FILE="$LOGGERD_RUNNING_DIR/.daemon.pid"
 
 function msg()
 {
-	echo "$(date "+%Y-%m-%d %H:%M:%S") $*"
+	echo "$(date "+%Y-%m-%d %H:%M:%S") $*" | tee -a "$LOGGER_DAEMON_LOGFILE"
 }
 
 which cronolog >/dev/null 2>&1 || {
@@ -14,9 +26,22 @@ which cronolog >/dev/null 2>&1 || {
 	exit 1
 }
 
-RUNNING_DIR="$1"
-[ "$RUNNING_DIR" ] || RUNNING_DIR=$DEFAULT_LOGGER_RUNNING_HOME
-RUNNING_STATUS_STORE=$RUNNING_DIR/.running
+function check_daemon
+{
+	local pid=
+	[ -r "$LOGGER_DAEMON_PID_FILE" ] && pid=$(cat "$LOGGER_DAEMON_PID_FILE")
+	[ "$pid" ] && kill -0 "$pid" 2>/dev/null && return 0
+	return 1
+}
+
+function check_daemon_withpid
+{
+	local expect_pid=$1
+	local pid=0
+	[ -r "$LOGGER_DAEMON_PID_FILE" ] && pid=$(cat "$LOGGER_DAEMON_PID_FILE")
+	[ "$pid" == "$expect_pid" ] && kill -0 "$expect_pid" 2>/dev/null && return 0
+	return 1
+}
 
 function update_status
 {
@@ -25,14 +50,14 @@ function update_status
 	local pipe=$3
 	local pattern=$4
 
-	sed -i -e "/^$logger:/d" "$RUNNING_STATUS_STORE"
+	gsed -i -e "/^$logger:/d" "$RUNNING_STATUS_STORE"
 	echo "$logger:$pid:$pipe:$pattern" >>"$RUNNING_STATUS_STORE"
 }
 
 function delete_status
 {
 	local logger=${1%.run}
-	sed -i -e "/^$logger:/d" "$RUNNING_STATUS_STORE"
+	gsed -i -e "/^$logger:/d" "$RUNNING_STATUS_STORE"
 }
 
 function read_status
@@ -55,23 +80,19 @@ function read_status
 
 function start_logger()
 {
-	msg "try start logger for config: $1"
+	msg "[daemon] try start logger for config: $1"
 	[ -f "$1" ] || {
-		msg "config file: [$1] not exist!"
+		msg "[daemon] config file: [$1] not exist!"
 		return 1
 	}
 
 	local logger=$1
 
-	#rm -f .lastpid
-	#local pid=""
-	#	nohup bash -c "( cat \"$pipe\" & echo \$! >.lastpid ) | cronolog $pattern" >/dev/null &
-	#	while [ -z "$pid" -a $(( i++ )) -lt 3 ]; do
-	#		sleep 1
-	#		[ -r .lastpid ] && pid=$(cat .lastpid)
-	#	done
-	#nohup bash -x $SCRIPT_DIR/$0 -task "$logger" >/dev/null &
-	bash -x $SCRIPT_DIR/$0 -task "$logger" >/dev/null &
+	if [ "$(set -o | awk '$1 == "xtrace" { print $2 }')" == on ]; then
+		bash -x "$SCRIPT" -task "$logger" $$ &
+	else
+		nohup bash "$SCRIPT" -task "$logger" $$ >/dev/null &
+	fi
 	#pid=$!
 
 }
@@ -79,45 +100,58 @@ function start_logger()
 function run_logger
 {
 	local logger=$1
+	local dpid=$2
 	local conf=$(grep '^pipe:' "$1" | head -n 1)
 	local pipe=${conf%% *}
 	pipe=${pipe#pipe:}
 	local pattern=${conf#* }
 
 	[ -z "$pipe" -o -z "$pattern" ] && {
-		msg "config file [$1] format error!"
+		msg "[$logger] config file [$1] format error!"
 		cat "$1"
 		return 1
 	}
 
 	if [ -f "$pipe" ]; then
 		[ -p "$pipe" ] || {
-			msg "file $pipe is not fifo"
+			msg "[$logger] file $pipe is not fifo"
 			return 2
 		}
 	else
 		mkfifo "$pipe"
 	fi
-
+	
 	while [ -r $logger ]; do
+		local begin_time=$(date +%s)
 		cronolog $pattern <"$pipe" &
 		local pid=$!
-
 		update_status "$logger" "$pid" "$pipe" "$pattern"
+		msg "[$logger] started logger process [$pid]"
 		wait $pid
-		sleep 1
+
+		check_daemon_withpid "$dpid" || {
+			msg "[$logger] Logger Daemon has exited, quit logger too"
+			break
+		}
+		if [ "$begin_time" == "$(date +%s)" ]; then
+			[ -r $Logger ] && msg "[$logger] Logger [$pid] process quit, restart after 1 second"
+			sleep 1
+		else
+			[ -r $Logger ] && msg "[$logger] Logger [$pid] process quit, restart immediately"
+		fi
 	done
+	msg "[$logger] Logger task stop."
 }
 
 function stop_logger()
 {
-	msg "try stop logger for config: $1"
+	msg "[daemon] try stop logger for config: $1"
 
 	[ "$1" ] || return
 
 	read_status "$1" last_pid last_pipe last_pattern
 	[ "$last_pid" ] || {
-		msg "can not found [$1]'s logger"
+		msg "[daemon] can not found [$1]'s logger"
 		return
 	}
 
@@ -144,9 +178,9 @@ function is_content_updated()
 function start()
 {
 	local pwd=$PWD
-	cd "$RUNNING_DIR"
-	for f in $(ls *.run | grep -v ' '); do
-		msg "found log config $f, start daemon"
+	cd "$LOGGERD_RUNNING_DIR"
+	for f in $(ls *.run 2>/dev/null | grep -v ' '); do
+		msg "[daemon] found log config $f, start daemon"
 		start_logger "$f"
 	done
 	cd "$pwd"
@@ -154,12 +188,12 @@ function start()
 
 monitor()
 {
-	msg "begin monitor logger config"
+	msg "[daemon] begin monitor logger config"
 	local pwd=$PWD
-	#local dir=$(basename $RUNNING_DIR)
-	cd "$RUNNING_DIR"
-	fswatch -x -e ".*" -i "^[^ ]*\\.run$" --event Removed --event Updated --event Created "$RUNNING_DIR" | while read change; do
-		msg "watched change: $change"
+	#local dir=$(basename $LOGGERD_RUNNING_DIR)
+	cd "$LOGGERD_RUNNING_DIR"
+	fswatch -x -e ".*" -i "^[^ ]*\\.run$" --event Removed --event Updated --event Created "$LOGGERD_RUNNING_DIR" | while read change; do
+		msg "[daemon] watched change: $change"
 		local config=$(basename ${change%% *})
 		local events=${change#* }
 
@@ -177,15 +211,19 @@ monitor()
 	cd "$pwd"
 }
 
-[ -d "$RUNNING_DIR" ] || {
-	msg "Running Home [$RUNNING_DIR] not exist"
-	exit 2
+[ -d "$LOGGERD_RUNNING_DIR" ] || {
+	#	msg "Running Home [$LOGGERD_RUNNING_DIR] not exist"
+	#	exit 2
+	mkdir -p "$LOGGERD_RUNNING_DIR"
 }
 
 if [ "$1" == "-task" ]; then
 	shift
-	run_logger "$1"
+	run_logger "$1" "$2"
 else
+	check_daemon && { msg "[daemon] Logger daemon is already running!"; exit 0; }
 	start
+	echo $$ >"$LOGGER_DAEMON_PID_FILE"
 	monitor
+	rm -f "$LOGGER_DAEMON_PID_FILE"
 fi
