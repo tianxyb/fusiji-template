@@ -1,7 +1,7 @@
 #!/bin/bash
 
-LOGGER_ETC_HOME=${LOGGER_ETC_HOME:-$HOMEBREW_PREFIX/etc/loggerd.d}
-LOGGER_RUNNING_HOME=${LOGGER_RUNNING_HOME:-$HOMEBREW_PREFIX/var/run/loggerd}
+LOGGER_ETC_HOME=${LOGGER_ETC_HOME:-$HOMEBREW_PREFIX/etc/rollinglogd}
+LOGGER_RUNNING_HOME=${LOGGER_RUNNING_HOME:-$HOMEBREW_PREFIX/var/run/rollinglogd}
 LOGGER_PIPE_HOME=$LOGGER_RUNNING_HOME/pipe
 LOGGER_FILE_STORE=$LOGGER_RUNNING_HOME/store
 LOGGER_DAEMON_PID_FILE=$LOGGER_RUNNING_HOME/.daemon.pid
@@ -143,7 +143,8 @@ function stop_logger
 function status
 {
 	cd "$LOGGER_RUNNING_HOME"
-	ls *.run | sed -e 's/\.run$//' | gawk -F: 'NR == FNR { 
+	[ -f "$LOGGER_RUNNING_HOME/.running" ] || touch "$LOGGER_RUNNING_HOME/.running"
+	ls *.run 2>/dev/null | sed -e 's/\.run$//' | gawk -F: 'NR == FNR { 
 			out[$1]=$2; 
 			period[$1]=$3; 
 			run[$1]="stop";
