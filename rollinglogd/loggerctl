@@ -169,6 +169,46 @@ function status
 		}' "$LOGGER_CONFIG_FILE" "$LOGGER_RUNNING_HOME"/.running -
 }
 
+function get_filename_after_check
+{
+	local logger=$2
+
+	local logger_config=$(grep "^$logger:" $LOGGER_CONFIG_FILE | head -n 1)
+	[ -z "$logger_config" ] && {
+		echo "Logger [$logger] is not exist"
+		return 1
+	}
+
+	local outpath=${logger_config#*:}
+	outpath=${outpath%:*}
+	
+	local logfile_prefix="$logger"
+	[ "${logfile_prefix%.log}" == "${logger}" ] && logfile_prefix="$logger.log"
+	
+	[ -f "$outpath/$logfile_prefix" ] || {
+		echo "Log file [$outpath/$logfile_prefix] is not found, may be log is empty"
+		return 1
+	}
+
+	eval "$1=\"$outpath/$logfile_prefix\""
+	return 0
+}
+
+function vi_log
+{
+	get_filename_after_check logfile $1 && vim -R "$logfile"
+}
+
+function cat_log
+{
+	get_filename_after_check logfile $1 && cat "$logfile"
+}
+
+function tail_log
+{
+	get_filename_after_check logfile $1 && tail -f "$logfile"
+}
+
 if ! check_daemon; then
 	echo "Fatal Error: Logger daemon is not running!"
 	exit 10
@@ -225,6 +265,9 @@ stop)
 	;;
 delete)
 	delete_logger "$try_logger"
+	;;
+tail|cat|vi)
+	${cmd}_log "$try_logger"
 	;;
 list | status)
 	status
