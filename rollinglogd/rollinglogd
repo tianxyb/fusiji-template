@@ -112,12 +112,11 @@ function run_logger
 		return 1
 	}
 
-	if [ -f "$pipe" ]; then
-		[ -p "$pipe" ] || {
+	if ! [ -p "$pipe" ]; then
+		[ -f "$pipe" ] && {
 			msg "[$logger] file $pipe is not fifo"
 			return 2
 		}
-	else
 		mkfifo "$pipe"
 	fi
 	
