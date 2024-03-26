@@ -16,6 +16,8 @@ RUNNING_STATUS_STORE=$LOGGERD_RUNNING_DIR/.running
 LOGGER_DAEMON_LOGFILE=${LOGGER_DAEMON_LOGFILE:-$HOMEBREW_PREFIX/var/log/rollinglogd.log}
 LOGGER_DAEMON_PID_FILE="$LOGGERD_RUNNING_DIR/.daemon.pid"
 
+MAX_INTERVAL_DAEMON_RESTART=3600
+
 function msg()
 {
 	echo "$(date "+%Y-%m-%d %H:%M:%S") $*" | tee -a "$LOGGER_DAEMON_LOGFILE"
@@ -120,6 +122,7 @@ function run_logger
 		mkfifo "$pipe"
 	fi
 	
+	local next_sleep=1
 	while [ -r $logger ]; do
 		local begin_time=$(date +%s)
 		cronolog $pattern <"$pipe" &
@@ -133,9 +136,11 @@ function run_logger
 			break
 		}
 		if [ "$begin_time" == "$(date +%s)" ]; then
-			[ -r $Logger ] && msg "[$logger] Logger [$pid] process quit, restart after 1 second"
-			sleep 1
+			[ -r $Logger ] && msg "[$logger] Logger [$pid] process quit, restart after $next_sleep second"
+			sleep $next_sleep
+			next_sleep=$(( next_sleep+next_sleep > $MAX_INTERVAL_DAEMON_RESTART ? $MAX_INTERVAL_DAEMON_RESTART: next_sleep+next_sleep))
 		else
+			next_sleep=1
 			[ -r $Logger ] && msg "[$logger] Logger [$pid] process quit, restart immediately"
 		fi
 	done
