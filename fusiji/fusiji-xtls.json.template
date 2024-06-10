@@ -9,6 +9,7 @@
           "flow":"xtls-rprx-direct",
           "level": 0
         }
+		{{MULTI_IDS}}
       ],
       "decryption": "none",
       "fallbacks": [
@@ -45,6 +46,7 @@
                 "id": "{{ID}}",
                 "level": 0
             }
+			{{MULTI_IDS}}
         ],
         "decryption": "none",
         "fallbacks": [

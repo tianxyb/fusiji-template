@@ -9,6 +9,7 @@
                 "id": "{{ID}}",
                 "level": 0
             }
+			{{MULTI_IDS}}
         ],
         "decryption": "none"
     },
