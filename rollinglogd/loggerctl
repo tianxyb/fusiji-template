@@ -21,7 +21,9 @@ Usage: $(basename $0) create logger_name [-m | -d] -H logfile_path
 	| $(basename $0) start logger_name
 	| $(basename $0) stop logger_name
 	| $(basename $0) delete logger_name
-	| $(basename $0) list
+	| $(basename $0) status
+	| $(basename $0) vi|cat|list|tail logger_name
+	| $(basename $0) grep [grep_option] 'pattern' logger_name
 
 Options: 
 	-m: roll logfile every month
