@@ -1,10 +1,33 @@
 {
+  "stats": {},
+  "api": {
+    "tag": "api",
+    "services": [
+      "StatsService"
+    ]
+  },
+  "policy": {
+    "levels": {
+      "0": {
+        "statsUserUplink": true,
+        "statsUserDownlink": true
+      }
+    },
+    "system": {
+      "statsInboundUplink": true,
+      "statsInboundDownlink": true,
+      "statsOutboundUplink": true,
+      "statsOutboundDownlink": true
+    }
+  },
   "inbounds": [{
+    "tag": "tls",
     "port": 2443,
     "protocol": "vless",
     "settings": {
       "clients": [
         {
+	  "email": "{{EMAIL}}",
           "id": "{{ID}}",
           "level": 0
         }
@@ -37,11 +60,13 @@
         }
     }
   },{
+    "tag": "ws",
     "port": 24622,
     "protocol": "vless",
     "settings": {
         "clients": [
             {
+	        "email": "{{EMAIL}}",
                 "id": "{{ID}}",
                 "level": 0
             }
@@ -68,6 +93,13 @@
             }
         }
     }
+  },{
+      "port": 10085,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      },
+      "tag": "api"
   }],
   "outbounds": [{
     "protocol": "freedom",
@@ -76,6 +108,16 @@
     "protocol": "blackhole",
     "settings": {},
     "tag": "blocked"
-  }]
+  }],
+  "routing": {
+        "rules": [
+            {
+                "inboundTag": [
+                    "api"
+                ],
+                "outboundTag": "api",
+                "type": "field"
+            }
+        ]
+    }
 }
-
