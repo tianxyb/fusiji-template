@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEMPLATE_FILE=/etc/fusiji/traffic.html.template
+TEMPLATE_FILE=/usr/bin/fusiji/traffic.html.template
 TMP_FILE=/tmp/traffic.html
 OUT_FILE=/usr/share/nginx/html/traffic.html
 
