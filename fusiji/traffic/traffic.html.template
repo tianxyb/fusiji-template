@@ -11,9 +11,9 @@ Service Status: <font size=5 color="red"> {{STATUS}}</font>. &nbsp;&nbsp; <font 
 <table width="500px">
 <thead>
 <tr>
-<td><font color="gray"><b>protocal</b></font></td>
-<td><font color="gray"><b>in</font></b></td>
-<td><font color="gray"><b>out</font></b></td>
+<td><font color="gray"><b>PROTOCAL</b></font></td>
+<td><font color="gray"><b>IN</font></b></td>
+<td><font color="gray"><b>OUT</font></b></td>
 </tr>
 </thead>
 <tbody>
@@ -28,9 +28,9 @@ Service Status: <font size=5 color="red"> {{STATUS}}</font>. &nbsp;&nbsp; <font 
 <table width="500px">
 <thead>
 <tr>
-<td><font color="gray"><b>user</b></font></td>
-<td><font color="gray"><b>in</b></font></td>
-<td><font color="gray"><b>out</b></font></td>
+<td><font color="gray"><b>USER</b></font></td>
+<td><font color="gray"><b>IN</b></font></td>
+<td><font color="gray"><b>OUT</b></font></td>
 </tr>
 </thead>
 <tbody>
