@@ -17,7 +17,7 @@ Service Status: <font size=5 color="red"> {{STATUS}}</font>. &nbsp;&nbsp; <font 
 </tr>
 </thead>
 <tbody>
-<!--protocal-body-template-->
+<!--PROTOCAL-BODY-TEMPLATE-->
 </tbody>
 </table>
 
@@ -34,7 +34,7 @@ Service Status: <font size=5 color="red"> {{STATUS}}</font>. &nbsp;&nbsp; <font 
 </tr>
 </thead>
 <tbody>
-<!--user-body-template-->
+<!--USER-BODY-TEMPLATE-->
 </tbody>
 </table>
 </body>
