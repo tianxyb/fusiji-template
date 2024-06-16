@@ -1,0 +1,35 @@
+<html>
+<head>
+<title>fusiji service traffic</title>
+</head>
+Service Status: <font size=4 color="red"> {{STATUS}}</font>. &nbsp;&nbsp; <font size=1 color="gray">report at: {{TIME}}</font>
+<p>
+<h2>Protocal</h2>
+<table width="400px">
+<thead>
+<tr>
+<td width="%20">protocal</td>
+<td width="%40">in</td>
+<td>out</td>
+</tr>
+</thead>
+<tbody>
+<!--PROTOCAL-BODY-TEMPLATE-->
+</tbody>
+</table>
+<p>
+
+<h2>User</h2>
+<table width="400px">
+<thead>
+<tr>
+<td>User</td>
+<td>in</td>
+<td>out</td>
+</tr>
+</thead>
+<tbody>
+<!--USER-BODY-TEMPLATE-->
+</table>
+<p>
+</html>
