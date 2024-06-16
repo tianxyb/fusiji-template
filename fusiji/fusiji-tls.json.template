@@ -21,7 +21,7 @@
     }
   },
   "inbounds": [{
-    "tag": "tls",
+    "tag": "https",
     "port": 2443,
     "protocol": "vless",
     "settings": {
@@ -60,7 +60,7 @@
         }
     }
   },{
-    "tag": "ws",
+    "tag": "wss",
     "port": 24622,
     "protocol": "vless",
     "settings": {
