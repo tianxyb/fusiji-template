@@ -4,7 +4,7 @@
 <title>fusiji service traffic</title>
 </head>
 <body>
-Service Status: <font size=5 color="red"> {{STATUS}}</font>. &nbsp;&nbsp; <font size=1 color="gray">report at: {{TIME}}. auto refresh: [<b>on</b>].</font>
+Service Status: <font size=5 color="red"> {{STATUS}}</font>. &nbsp;&nbsp; <font size=1 color="gray">report at: {{TIME}}. &nbsp;&nbsp; auto refresh: <b>on</b>.</font>
 <br/>
 <br/>
 
