@@ -32,7 +32,10 @@ function check_daemon
 {
 	local pid=
 	[ -r "$LOGGER_DAEMON_PID_FILE" ] && pid=$(cat "$LOGGER_DAEMON_PID_FILE")
-	[ "$pid" ] && kill -0 "$pid" 2>/dev/null && return 0
+	[ "$pid" ] && kill -0 "$pid" 2>/dev/null && {
+		local lives=$(ps -ef | grep "[^0-9]$pid[^0-9].*rollinglogd\>" | grep -v grep | wc -l)
+		[ "$lives" -gt 0 ] && return 0
+	}
 	return 1
 }
 
