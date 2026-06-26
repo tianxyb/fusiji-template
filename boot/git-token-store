@@ -29,6 +29,7 @@ function install()
 		}
 		echo "$content" > "$INSTALL_FILE"
 		chmod 600 "$INSTALL_FILE"
+		git config --global credential.helper store
 		echo "install complete!"
 
 	else
