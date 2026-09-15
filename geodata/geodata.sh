@@ -18,8 +18,8 @@ info ">>> begin update geoip..."
 #	sha_remote=$(curl -sL "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat.sha256sum" | awk '{ print $1 }')
 #curl -sL -o /tmp/geoip.dat "https://sjcp.fusiji.site/geoip/geoip.dat" && {
 #	sha_remote=$(curl -sL "https://sjcp.fusiji.site/geoip/geoip.dat.sha256sum" | awk '{ print $1 }')
-curl -sL -o /tmp/geoip.dat "https://openwrt.fusiji.site/geoip/geoip.dat" && {
-	sha_remote=$(curl -sL "https://openwrt.fusiji.site/geoip/geoip.dat.sha256sum" | awk '{ print $1 }')
+curl -sL -o /tmp/geoip.dat "https://web.fusiji.site:25443/geoip/geoip.dat" && {
+	sha_remote=$(curl -sL "https://web.fusiji.site:25443/geoip/geoip.dat.sha256sum" | awk '{ print $1 }')
 	sha_local=$(sha256sum /tmp/geoip.dat | awk '{ print $1 }')
 	[ "${sha_remote}" == "${sha_local}" -a "${sha_local}" ] && {
 		sha_orig=$(sha256sum "${INSTALL_PATH}"/geoip.dat | awk '{ print $1 }')
